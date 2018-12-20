@@ -1,0 +1,38 @@
+# All the heuristic logics, and ways of handling the data inconsistency explained below.
+# Assuming the end_city given as input will have lat, lon values as mentioned in piazza.. otherwise this might fail
+
+
+    Logic used for A-Star:
+        1) Heuristic for Distance:
+            -- Calculated heuristic as - Since the displacement is always <= to the road distance, calculated displacement between the
+               current city to goal city using the latitudes, longitudes given in the city-gps.txt file and used it as heuristic value.
+            -- Used haversine formula to calculate the displacement -- Mentioned the reference in the 'calDisplacement' function.
+
+            Handling the data inconsistency:
+                -- Problem with calculating the displacements was that the given data doesn't have lat, lon values of all cities.
+                -- In that case, I considered the city which is nearest to it by road distance by iterating through it's succesors/predecessors.
+                -- Again, one more problem here. If none of it's nearby cities have the lat, lon data; then I considered the lat, lon average
+                   of that state in which city is present and calculated distance using that.
+                -- Yet again, faced few problems because of invalid state names like Jct_34&56. There are cases where the none of the cities in a
+                   particular state are mentioned in the city-gps.txt file. In that case, average can't be calculated.
+                -- So, to tackle the above problem, while iterating, i'm storing the previous city in the route and using it's lat, lon values.
+
+        2) Heuristic for Time:
+            -- Calculated heuristic as - Distance(heuristic value as caluculated above) / Average speed of all routes in the given data.
+            -- Average speeds of all routes given in the data seemed to be the best option as the denominator, as we are neither aware of the upcoming route,
+               nor can rely on the route followed till now, as the speeds keeps changing based on states and highways.
+
+            Handling the data inconsistency:
+                -- Problem here was that few routes were missing speed values or have the speed values as '0'.
+                -- So to handle this problem, i've replaced 0s and missing speeds with average speed in that particular highway,
+                   rather than overall avergae. If that highway does not occur in any other route, then using the over all avergae speed instead.
+
+        3) Heuristic for Segments:
+            -- Calculated the heuristic as - Distance(heuristic value as caluculated above) / Average distance of all routes
+            -- Intuition behind this is that, by diving heuristic distance value with average distance, we get
+               the estimated number of segments.
+
+    -- Although the heuristics seems to be good enough and data inconsisties handled properly, but still was not able to get optimal answers
+       as compared to UCS.
+    -- I have identified that the latitudes, longitudes data given in the file itself are wrong or the road distance values in the road-segments.txt file are wrong. They give the displacement values higher than the road distances, thus making
+       the heuristic inadmissible and not able to produce optimal results.
